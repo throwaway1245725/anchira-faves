@@ -111,6 +111,11 @@
 
   const tagGallery = (allFaveUrls, allArtists) => {
     if (allFaveUrls.includes(window.location.href)) {
+      const favBtn = document.querySelector(
+        "#main > #gallery > aside > #actions > button.fav"
+      );
+      favBtn.style.opacity = 0.5;
+      favBtn.style.pointerEvents = "none";
       const img = document.querySelector(
         "#main > #gallery > aside > figure img"
       );
