@@ -18,6 +18,25 @@
   const STAR =
     "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEgAAABICAMAAABiM0N1AAAAM1BMVEVHcEz/rDP/rDP/rDP/rDP/rDP/rDP/rDP/rDP/rDP/rDP/rDP/rDP/rDP/rDP/rDP/rDPIzIGKAAAAEXRSTlMAMK/v/78gcM8QYFDfgECfjzPxc0MAAAFZSURBVHgB7djVYsUwCIBhEoin8v4vO2WeM0jpfN/t0Z+mCif45zyid2DmkG6gA6tAdwIYRWIRbBKxBDaZWLaXsWguY8lcxoK9jBVzGavmMubtZayYy1g1lzFvL2PFXMaquYx5exkr5jJWzWXM28tUba2TSW/8PWTW4FYnsw43Cp2gnPVFp6WdO2xoSCbYgBVPBr7Ak4R0ECZ4wWU6JDt4baEDFhhYO03qKwwVb5gyYw3nN/pYDKQUoniAVUkgclm90QXFq6cskL8IVAqJCmhUElXQ2Ei0gQaSCEGhkULTl9nbuvZoL3Ck4kCyk8oOkkwqGQSRlA4cRTAlnD+O5OEhw+XZtnJpqvvkjlsvHpjX13l15lAUCjwqYeagNB7oeEOod9js3j+cN+Wy3gu8UXbl4g7i6a+hakjp1ZQHStAsyYj8HsXixyg+5MlOcQrt0oFkTSuI1rrCt3cNofAlUpDr+CkAAAAASUVORK5CYII=";
 
+  const waitForEl = (selector) =>
+    new Promise((resolve) => {
+      if (document.querySelector(selector)) {
+        return resolve(document.querySelector(selector));
+      }
+
+      const observer = new MutationObserver(() => {
+        if (document.querySelector(selector)) {
+          observer.disconnect();
+          resolve(document.querySelector(selector));
+        }
+      });
+
+      observer.observe(document.body, {
+        childList: true,
+        subtree: true,
+      });
+    });
+
   const expandPreview = () => {
     try {
       const previews = document.getElementById("previews");
@@ -51,10 +70,12 @@
     img.style.borderColor = "rgb(255 172 51)";
     const starDiv = document.createElement("img");
     starDiv.src = STAR;
-    starDiv.style.width = "30px";
-    starDiv.style.height = "30px";
+    starDiv.style.width = "50px";
+    starDiv.style.minWidth = "50px";
+    starDiv.style.height = "50px";
+    starDiv.style.minHeight = "50px";
     starDiv.style.marginTop = "8px";
-    starDiv.style.marginLeft = "-44px";
+    starDiv.style.marginLeft = "-60px";
     starDiv.style.position = "absolute";
     img.after(starDiv);
   };
@@ -89,14 +110,10 @@
   };
 
   const tagGallery = (allFaveUrls, allArtists) => {
-    document
-      .getElementById("actions")
-      ?.querySelector('form[action^="/favorite/"')
-      ?.remove();
     if (allFaveUrls.includes(window.location.href)) {
-      const img = document
-        .getElementById("cover")
-        .getElementsByTagName("img")[0];
+      const img = document.querySelector(
+        "#main > #gallery > aside > figure img"
+      );
       decorateImg(img);
     }
     const galleryMetadata = document.getElementById("metadata");
@@ -129,22 +146,30 @@
     tagGallery(allFaveUrls, allArtists);
   };
 
-  const fetchFaves = (response) => {
+  const fetchFaves = async (response) => {
+    const MAIN_CSS_SELECTOR = "#main > :is(section, article) > main";
     const [allFaveUrls, allArtists] = loadData(response);
-    processFaves(allFaveUrls, allArtists);
-    const observerOptions = {
-      attributes: true,
+    const mainObserver = new MutationObserver(() =>
+      tagStuff(allFaveUrls, allArtists)
+    );
+    let mainEl = await waitForEl(MAIN_CSS_SELECTOR);
+    tagStuff(allFaveUrls, allArtists);
+    mainObserver.observe(mainEl, { childList: true });
+    const rootObserver = new MutationObserver(async () => {
+      if (
+        !document.body.contains(mainEl) ||
+        !document.querySelector(MAIN_CSS_SELECTOR)
+      ) {
+        mainObserver.disconnect();
+        mainEl = await waitForEl(MAIN_CSS_SELECTOR);
+        tagStuff(allFaveUrls, allArtists);
+        mainObserver.observe(mainEl, { childList: true });
+      }
+    });
+    rootObserver.observe(document.querySelector("#main"), {
       childList: true,
       subtree: true,
-    };
-    const observer = new MutationObserver(() =>
-      processFaves(allFaveUrls, allArtists)
-    );
-    observer.observe(document.getElementById("main"), observerOptions);
-  };
-
-  const processFaves = (allFaveUrls, allArtists) => {
-    tagStuff(allFaveUrls, allArtists);
+    });
   };
 
   expandPreview();
