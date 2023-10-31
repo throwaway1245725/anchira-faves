@@ -80,10 +80,13 @@
     img.after(starDiv);
   };
 
-  const tagGalleries = (allFaveUrls) => {
+  const tagGalleries = (allFaveUrls, allArtists) => {
     const articles = Array.from(
       document.querySelectorAll("#main > #feed > main > article")
     );
+    for (const article of articles) {
+      tagGalleryArtists(article, allArtists);
+    }
     const faves = articles.filter((f) =>
       allFaveUrls.includes(f.querySelector("a.overlay").href)
     );
@@ -123,28 +126,33 @@
     }
     const galleryMetadata = document.getElementById("metadata");
     if (galleryMetadata) {
-      const artists = Array.from(
-        galleryMetadata.querySelectorAll(
-          "div.tags > a[data-namespace='1'][href*='/?s=artist:']"
-        )
-      );
-      if (artists.length > 0) {
-        artists
-          .filter((a) => {
-            const m = a.href.match(
-              /https:\/\/.*\/\?s=artist:(?:%22)?%5E(.*)%24(?:%22)?/
-            );
-            return m && allArtists.includes(cleanArtistName(m[1]));
-          })
-          .forEach((a) => {
-            a.style.color = "rgb(255 171 49)";
-          });
-      }
+      tagGalleryArtists(galleryMetadata, allArtists);
+    }
+  };
+
+  const tagGalleryArtists = (parent, allArtists) => {
+    const artists = Array.from(
+      parent.querySelectorAll(
+        "div > a[data-namespace='1'][href*='/?s=artist:']"
+      )
+    );
+    if (artists.length > 0) {
+      artists
+        .filter((a) => {
+          const m = a.href.match(
+            /https:\/\/.*\/\?s=artist:(?:%22)?%5E(.*)%24(?:%22)?/
+          );
+          return m && allArtists.includes(cleanArtistName(m[1]));
+        })
+        .forEach((a) => {
+          a.style.color = "rgb(255 171 49)";
+          a.style.backgroundColor = "rgb(73 27 0)";
+        });
     }
   };
 
   const tagStuff = (allFaveUrls, allArtists) => {
-    tagGalleries(allFaveUrls);
+    tagGalleries(allFaveUrls, allArtists);
 
     tagArtists(allArtists);
 
