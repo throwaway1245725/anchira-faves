@@ -82,7 +82,7 @@
 
   const tagGalleries = (allFaveUrls, allArtists) => {
     const articles = Array.from(
-      document.querySelectorAll("#main > #feed > main > article")
+      document.querySelectorAll("#main > .feed > main > article")
     );
     for (const article of articles) {
       tagGalleryArtists(article, allArtists);
