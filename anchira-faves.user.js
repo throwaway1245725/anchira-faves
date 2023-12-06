@@ -37,11 +37,23 @@
       });
     });
 
-  const expandPreview = () => {
+  const movePreviewBtn = () => {
     try {
-      const previews = document.getElementById("previews");
-      if (previews) {
-        previews.getElementsByTagName("footer")[0]?.children[1]?.click();
+      const showAllBtn = document.querySelector(
+        "#previews footer button:nth-of-type(2)"
+      );
+      if (showAllBtn) {
+        showAllBtn.style.backgroundColor = "#0f4d8a";
+        showAllBtn.style.borderRadius = ".5rem";
+        showAllBtn.style.fontWeight = 500;
+        showAllBtn.style.letterSpacing = ".05rem";
+        showAllBtn.style.padding = "1rem";
+        showAllBtn.style.textTransform = "uppercase";
+        showAllBtn.style.marginBottom = "1rem";
+        showAllBtn.style.width = "100%";
+        showAllBtn.onclick = () =>
+          document.querySelector("#previews").removeChild(showAllBtn);
+        document.querySelector("#previews").prepend(showAllBtn);
       }
     } catch (e) {
       console.error(e);
@@ -185,8 +197,8 @@
     });
   };
 
-  expandPreview();
-  setInterval(expandPreview, 1000);
+  movePreviewBtn();
+  setInterval(movePreviewBtn, 1000);
   GM.xmlHttpRequest({
     method: "GET",
     url: INDEX_URL,
